@@ -1,0 +1,2 @@
+# investCalcPrototype
+Created with CodeSandbox
