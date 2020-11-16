@@ -6,18 +6,16 @@
   },
   {
     "ticker": "yndx",
-    "tickerType": "share",
     "count": 16,
     "type": "buy",
-    "price": 2034.5,
+    "value": 2034.5,
     "dateTime": "02.03.2019"
   },
   {
     "ticker": "yndx",
-    "tickerType": "share",
     "count": 13,
     "type": "sell",
-    "price": 3034.5,
+    "value": 3034.5,
     "dateTime": "02.03.2019"
   }
 ]

@@ -1,7 +1,42 @@
-[
-  {
-    "yndx": "share",
-    "ifxit": "fund",
-    "ru123456": "commodity"
-  }
-]
+{
+  "fxit": "fund",
+  "ru123456": "commodity",
+
+  "aflt": "equity",
+  "alrs": "equity",
+  "chmf": "equity",
+  "fees": "equity",
+  "gazr": "equity",
+  "gmkr": "equity",
+  "gmkn": "equity",
+  "hydr": "equity",
+  "lkoh": "equity",
+  "mgnt": "equity",
+  "moex": "equity",
+  "mtsi": "equity",
+  "nlmk": "equity",
+  "notk": "equity",
+  "rosn": "equity",
+  "rtkm": "equity",
+  "sbpr": "equity",
+  "sbrf": "equity",
+  "sngp": "equity",
+  "sngr": "equity",
+  "tatn": "equity",
+  "trnf": "equity",
+  "vtbr": "equity",
+  "magn": "equity",
+  "plzl": "equity",
+  "yndx": "equity",
+  "afks": "equity",
+  "irao": "equity",
+  "poly": "equity",
+  "tcsi": "equity",
+  "five": "equity",
+  "mail": "equity",
+  "gbmw": "equity",
+  "gdai": "equity",
+  "gdbk": "equity",
+  "gsie": "equity",
+  "gvw3": "equity"
+}
