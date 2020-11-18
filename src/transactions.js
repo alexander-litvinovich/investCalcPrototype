@@ -1,8 +1,11 @@
 const dayjs = require("dayjs");
+const duration = require("dayjs/plugin/duration");
+dayjs.extend(duration);
+
 import ASSET_TYPE_BY_TICKER from "./tickerTypes.json";
 import { marketTickerPrice } from "./marketConnector";
 
-const DATE_FORMAT = "DD.MM.YYYY";
+const DATE_FORMAT = "YYYY-MM-DD";
 
 const getTickers = async (data) => {
   const tickerPrices = {};
@@ -19,8 +22,8 @@ const getTickers = async (data) => {
 const getPortfolio = (data, tickerPrices) => {
   return data.reduce((portfolio, { value, ticker, count, type, dateTime }) => {
     switch (type) {
-      case "buy":
-      case "sell": {
+      case "Buy":
+      case "Sell": {
         const {
           quantity = 0,
           deals = [],
@@ -51,9 +54,9 @@ const getPortfolio = (data, tickerPrices) => {
           }
         };
       }
-      case "add":
-      case "remove":
-      case "commission": {
+      case "Add":
+      case "Remove":
+      case "Commission": {
         const { quantity = 0, deals = [] } = portfolio["money"] || {};
         return {
           ...portfolio,
@@ -77,6 +80,70 @@ const getPortfolio = (data, tickerPrices) => {
   }, {});
 };
 
+const getAnalyticsByAsset = (portfolio, ticker) => {
+  const resultDeals = [];
+  const dealStack = [];
+
+  let summaryDelta = 0;
+  let inDays = 0;
+
+  console.log("inAnalytics: ", portfolio[ticker]);
+
+  const firstDeal = portfolio[ticker].deals[0].dateTime;
+  const lastDeal =
+    portfolio[ticker].deals[portfolio[ticker].deals.length - 1].dateTime;
+
+console.log(firstDeal, lastDeal);
+
+  // if (portfolio[ticker].deals.length > 1) {
+  //   inDays = lastDeal.dateTime.diff(firstDeal, "day");
+  // } else {
+  //   inDays = dayjs().diff(firstDeal, "day");
+  // }
+
+  for (const deal of portfolio[ticker].deals) {
+    if (deal.type === "Buy") {
+      dealStack.push({
+        count: deal.count,
+        value: deal.value
+      });
+      resultDeals.push({ ...deal });
+
+      console.log("stacks", dealStack, resultDeals);
+    }
+
+    if (deal.type === "Sell") {
+      let sellCount = deal.count;
+      let delta = 0;
+
+      while (sellCount > 0) {
+        const lastDeal = dealStack.pop();
+
+        if (sellCount < lastDeal.count) {
+          delta += sellCount * deal.value - sellCount * lastDeal.value;
+
+          lastDeal.count = lastDeal.count - sellCount;
+          sellCount = 0;
+          dealStack.push(lastDeal);
+        } else {
+          delta += deal.value * deal.count - lastDeal.value * lastDeal.count;
+          sellCount = sellCount - lastDeal.count;
+        }
+      }
+
+      summaryDelta += delta;
+      resultDeals.push({ ...deal, delta });
+    }
+  }
+
+  return {
+    quantity: portfolio[ticker].quantity,
+    inDays,
+    summaryDelta,
+    resultDeals
+  };
+};
+
 const MULTIPLIER_BY_TYPE = {
   buy: 1,
   sell: -1,
@@ -93,4 +160,4 @@ const getAssetTypeByTicker = (ticker) => {
   return ASSET_TYPE_BY_TICKER[ticker] || false;
 };
 
-export { getPortfolio, getTickers };
+export { getPortfolio, getTickers, getAnalyticsByAsset };

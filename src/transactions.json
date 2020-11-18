@@ -6,16 +6,37 @@
   },
   {
     "ticker": "yndx",
-    "count": 16,
+    "count": 10,
     "type": "buy",
-    "value": 2034.5,
+    "value": 1000,
     "dateTime": "02.03.2019"
   },
   {
     "ticker": "yndx",
-    "count": 13,
+    "count": 1,
     "type": "sell",
-    "value": 3034.5,
+    "value": 2000,
+    "dateTime": "02.03.2019"
+  },
+  {
+    "ticker": "yndx",
+    "count": 1,
+    "type": "sell",
+    "value": 2100,
+    "dateTime": "02.03.2019"
+  },
+  {
+    "ticker": "yndx",
+    "count": 1,
+    "type": "sell",
+    "value": 2200,
+    "dateTime": "02.03.2019"
+  },
+  {
+    "ticker": "moex",
+    "count": 1,
+    "type": "buy",
+    "value": 900,
     "dateTime": "02.03.2019"
   }
 ]
