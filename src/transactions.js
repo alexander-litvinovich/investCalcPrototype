@@ -19,36 +19,29 @@ const getTickers = async (data) => {
   return tickerPrices;
 };
 
-const getPortfolio = (data, tickerPrices) => {
-  return data.reduce((portfolio, { value, ticker, count, type, dateTime }) => {
-    switch (type) {
+const getPortfolio = (inputDeals, tickerPrices) => {
+  return inputDeals.reduce((portfolio, deal) => {
+    switch (deal.type) {
       case "Buy":
       case "Sell": {
         const {
-          quantity = 0,
+          count = 0,
           deals = [],
-          inValue = 0.0,
-          outValue = 0.0,
-          currentValue = 0.0
-        } = portfolio[ticker] || {};
+          currentValue = tickerPrices[deal.ticker],
+          error = tickerPrices[deal.ticker] === null
+        } = portfolio[deal.ticker] || {};
 
         return {
           ...portfolio,
-          [ticker]: {
-            quantity: quantity + getMultiplier(type) * count,
-            assetType: getAssetTypeByTicker(ticker),
-            inValue: inValue + (getMultiplier(type) > 0 && count * value),
-            outValue: outValue + (getMultiplier(type) < 0 && count * value),
-            currentValue:
-              currentValue +
-              (getMultiplier(type) > 0 && count * tickerPrices[ticker]),
+          [deal.ticker]: {
+            error,
+            currentValue,
+            count: count + getMultiplier(deal.type) * deal.count,
             deals: [
               ...deals,
               {
-                type,
-                count,
-                value,
-                dateTime: dayjs(dateTime, DATE_FORMAT)
+                ...deal,
+                dateTime: dayjs(deal.dateTime, DATE_FORMAT)
               }
             ]
           }
@@ -57,18 +50,18 @@ const getPortfolio = (data, tickerPrices) => {
       case "Add":
       case "Remove":
       case "Commission": {
-        const { quantity = 0, deals = [] } = portfolio["money"] || {};
+        const { deals = [], value = 0.0 } = portfolio["money"] || {};
+
         return {
           ...portfolio,
           ["money"]: {
-            quantity: quantity + getMultiplier(type) * value,
+            value: value + getMultiplier(deal.type) * deal.value,
             deals: [
               ...deals,
               {
-                type,
-                count: 1,
-                value,
-                dateTime: dayjs(dateTime, DATE_FORMAT)
+                type: deal.type,
+                value: deal.value,
+                dateTime: dayjs(deal.dateTime, DATE_FORMAT)
               }
             ]
           }
@@ -93,7 +86,7 @@ const getAnalyticsByAsset = (portfolio, ticker) => {
   const lastDeal =
     portfolio[ticker].deals[portfolio[ticker].deals.length - 1].dateTime;
 
-console.log(firstDeal, lastDeal);
+  console.log(firstDeal, lastDeal);
 
   // if (portfolio[ticker].deals.length > 1) {
   //   inDays = lastDeal.dateTime.diff(firstDeal, "day");
@@ -102,54 +95,53 @@ console.log(firstDeal, lastDeal);
   // }
 
   for (const deal of portfolio[ticker].deals) {
+    const { count, value } = deal;
+
     if (deal.type === "Buy") {
       dealStack.push({
-        count: deal.count,
-        value: deal.value
+        count,
+        value
       });
       resultDeals.push({ ...deal });
-
-      console.log("stacks", dealStack, resultDeals);
     }
 
     if (deal.type === "Sell") {
-      let sellCount = deal.count;
-      let delta = 0;
+      let sellCount = count;
+      let sellProfit = count * value;
 
       while (sellCount > 0) {
-        const lastDeal = dealStack.pop();
+        const { count: prevCount, value: prevValue } = dealStack.pop();
 
-        if (sellCount < lastDeal.count) {
-          delta += sellCount * deal.value - sellCount * lastDeal.value;
-
-          lastDeal.count = lastDeal.count - sellCount;
-          sellCount = 0;
-          dealStack.push(lastDeal);
+        if (sellCount >= prevCount) {
+          sellProfit = sellProfit - prevCount * prevValue;
+          sellCount = sellCount - prevCount;
         } else {
-          delta += deal.value * deal.count - lastDeal.value * lastDeal.count;
-          sellCount = sellCount - lastDeal.count;
+          sellProfit = sellProfit - sellCount * prevValue;
+          dealStack.push({ count: prevCount - sellCount, value: prevValue });
+
+          sellCount = 0;
         }
       }
 
-      summaryDelta += delta;
-      resultDeals.push({ ...deal, delta });
+      resultDeals.push({ ...deal, sellProfit });
     }
   }
 
   return {
-    quantity: portfolio[ticker].quantity,
-    inDays,
-    summaryDelta,
-    resultDeals
+    count: portfolio[ticker].count,
+    // inDays,
+    resultDeals,
+    ticker
   };
 };
 
 const MULTIPLIER_BY_TYPE = {
-  buy: 1,
-  sell: -1,
-  commission: -1,
-  add: 1,
-  remove: -1
+  Buy: 1,
+  Sell: -1,
+  Commission: -1,
+  Dividend: 1,
+  Add: 1,
+  Remove: -1
 };
 
 const getMultiplier = (type) => {

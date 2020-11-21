@@ -1,19 +1,24 @@
 import assetStab from "./asset_stab.json";
 
+const Micex = require("micex.api");
+
 const cache = {};
 
-async function marketTickerPrice(ticker) {
+async function marketTickerPrice(inputTicker) {
+  const ticker = inputTicker.toLowerCase();
+
   if (!cache[ticker]) {
-    const json = await fetch(
-      `https://iss.moex.com/iss/engines/stock/markets/shares/securities/${ticker}.json`
-    ).then(function (res) {
-      return res.json();
-    });
-    cache[ticker] = parseFloat(
-      json.marketdata.data.filter(function (d) {
-        return ["TQBR", "TQTF"].indexOf(d[1]) !== -1;
-      })[0][12]
-    );
+    
+    try {
+      const marketData = await Micex.securityMarketdata(ticker);
+      cache[ticker] = marketData["LAST"];
+      
+    } catch (error) {
+      
+      return null;
+    }
+
+
   }
   return cache[ticker];
 }

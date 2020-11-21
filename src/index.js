@@ -5,21 +5,19 @@ require("dotenv").config();
 const data = [];
 
 var Airtable = require("airtable");
-const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
-                .base(process.env.AIRTABLE_DATABASE_ID);
+const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+  process.env.AIRTABLE_DATABASE_ID
+);
 
-base("Table 1")
+base("Deals")
   .select({
-    sort: [
-      { field: "dateTime", direction: "asc" },
-      { field: "type", direction: "asc" }
-    ],
+    sort: [{ field: "id", direction: "asc" }],
     maxRecords: 1000
   })
   .eachPage(
     function page(records, fetchNextPage) {
       records.forEach(function (record) {
-        console.log("Retrieved", record.get("Date"), record.fields);
+        console.log("Retrieved —", record.fields);
         data.push(record.fields);
       });
 
@@ -30,18 +28,24 @@ base("Table 1")
         console.error(err);
         return;
       }
-
+      console.log("done");
       run();
     }
   );
 
-
 function run() {
+  console.log("RUn!");
   getTickers(data).then((result) => {
     const portfolio = getPortfolio(data, result);
 
     console.log("tickers ?", result);
     console.log("portfolio ?", portfolio);
-    console.log("analytics", getAnalyticsByAsset(portfolio, "yndx"));
+    console.log(
+      "analytics",
+      getAnalyticsByAsset(
+        portfolio,
+        !!window.location.hash.slice(1) ? window.location.hash.slice(1) : "YNDX"
+      )
+    );
   });
 }

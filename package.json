@@ -13,8 +13,7 @@
     "dayjs": "^1.9.6",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "google-spreadsheet": "^3.0.13",
-    "googleapis": "^65.0.0",
+    "micex.api": "^0.2.2",
     "open": "^7.3.0"
   },
   "devDependencies": {
